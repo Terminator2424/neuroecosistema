@@ -1,0 +1,7 @@
+# Escenario A: recursos suficientes y pocos depredadores (escenario base de entrenamiento)
+plants:
+  initial: 80
+  max_plants: 150         # calibrado (D9): antes 120
+  respawn_rate: 0.10      # calibrado (D9): antes 0.04
+predators:
+  initial: 3

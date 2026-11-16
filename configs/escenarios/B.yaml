@@ -1,0 +1,7 @@
+# Escenario B: escasez de alimento (solo cambia el alimento respecto a A)
+plants:
+  initial: 40             # calibrado (D9): antes 20
+  max_plants: 60          # calibrado (D9): antes 40
+  respawn_rate: 0.02      # calibrado (D9): antes 0.005
+predators:
+  initial: 3

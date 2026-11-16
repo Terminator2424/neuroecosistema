@@ -1,0 +1,7 @@
+numpy
+pyyaml
+pandas
+matplotlib
+scipy
+pygame
+pytest
