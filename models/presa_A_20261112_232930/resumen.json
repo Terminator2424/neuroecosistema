@@ -1,0 +1,27 @@
+{
+  "especie": "presa",
+  "escenario": "A",
+  "generaciones": 8,
+  "poblacion": 12,
+  "episodios_por_genoma": 2,
+  "oponente": "perseguidor",
+  "poblacion_inicial": "aleatoria",
+  "fitness_validacion_del_modelo_final": 0.3646122222222222,
+  "fitness_validacion_de_los_finalistas": [
+    0.3646122222222222,
+    0.3218811111111111,
+    0.3609184444444444
+  ],
+  "semillas_validacion": [
+    1900,
+    1904
+  ],
+  "norma_cambio_de_pesos_vs_mejor_gen0": 2.1831587850024303,
+  "fraccion_de_pesos_modificados": 0.46116504854368934,
+  "n_parametros": 206,
+  "segundos_totales": 23.0,
+  "episodios_simulados": 207,
+  "python": "3.12.0",
+  "numpy": "2.5.4",
+  "commit": "789f8b9"
+}

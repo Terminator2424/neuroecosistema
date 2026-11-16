@@ -1,0 +1,70 @@
+seed: 42
+world:
+  width: 800
+  height: 600
+  max_steps: 1500
+plants:
+  initial: 80
+  max_plants: 150
+  respawn_rate: 0.1
+  energy_value: 30
+  eat_radius: 10
+prey:
+  initial: 30
+  max_speed: 3.0
+  max_turn: 0.25
+  start_energy: 100
+  max_energy: 150
+  energy_cost_base: 0.03
+  energy_cost_move: 0.05
+  vision_range: 150
+predators:
+  initial: 3
+  max_speed: 3.1
+  max_turn: 0.2
+  start_energy: 150
+  max_energy: 200
+  energy_cost_base: 0.05
+  energy_cost_move: 0.08
+  vision_range: 180
+  capture_radius: 8
+  energy_gain_capture: 35
+network:
+  prey_hidden:
+  - 12
+  - 8
+  predator_hidden:
+  - 10
+  - 8
+  hidden_activation: tanh
+evolution:
+  population_size: 30
+  generations: 100
+  elite: 3
+  tournament_size: 3
+  mutation_rate: 0.1
+  mutation_sigma: 0.2
+  crossover_rate: 0.0
+  episodes_per_genome: 3
+fitness:
+  variant_prey: mixta
+  variant_predator: mixta
+  prey_weight_survival: 0.7
+  prey_weight_food: 0.3
+  prey_food_ref: 8.0
+  predator_weight_captures: 0.7
+  predator_weight_energy: 0.3
+training:
+  prey_opponent: perseguidor
+  predator_opponent: aleatorio
+  validation_top_k: 5
+  validation_seeds: 10
+  validation_offset: 900
+seeds:
+  train_start: 1000
+  eval_start: 5000
+  eval_count: 30
+_corrida:
+  especie: depredador
+  escenario: A
+  procesos: 19

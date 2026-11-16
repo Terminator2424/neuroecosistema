@@ -1,0 +1,29 @@
+{
+  "especie": "depredador",
+  "escenario": "A",
+  "generaciones": 100,
+  "poblacion": 30,
+  "episodios_por_genoma": 3,
+  "oponente": "aleatorio",
+  "poblacion_inicial": "aleatoria",
+  "fitness_validacion_del_modelo_final": 0.8850257431038585,
+  "fitness_validacion_de_los_finalistas": [
+    0.7759283853545293,
+    0.7770978462471604,
+    0.7871250800759804,
+    0.8850257431038585,
+    0.8200858163433378
+  ],
+  "semillas_validacion": [
+    1900,
+    1909
+  ],
+  "norma_cambio_de_pesos_vs_mejor_gen0": 9.853996701979261,
+  "fraccion_de_pesos_modificados": 1.0,
+  "n_parametros": 166,
+  "segundos_totales": 809.8,
+  "episodios_simulados": 9050,
+  "python": "3.12.0",
+  "numpy": "2.5.4",
+  "commit": "789f8b9"
+}

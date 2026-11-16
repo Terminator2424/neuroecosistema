@@ -1,0 +1,19 @@
+{
+  "semillas": [
+    5000,
+    5029
+  ],
+  "n_semillas": 30,
+  "escenarios": "ABC",
+  "modelos": {
+    "presa_base": "models/presa_A_base",
+    "depre_etapa1": "models/depre_A_etapa1",
+    "depre_base": "models/depre_A_base",
+    "presa_pequena": "models/presa_A_pequena",
+    "presa_grande": "models/presa_A_grande"
+  },
+  "redes_sin_entrenar_por_condicion": 5,
+  "python": "3.12.0",
+  "numpy": "2.5.4",
+  "commit": "b428120"
+}

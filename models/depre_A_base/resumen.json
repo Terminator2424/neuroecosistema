@@ -1,0 +1,29 @@
+{
+  "especie": "depredador",
+  "escenario": "A",
+  "generaciones": 100,
+  "poblacion": 30,
+  "episodios_por_genoma": 3,
+  "oponente": "reglas",
+  "poblacion_inicial": "models/depre_A_etapa1",
+  "fitness_validacion_del_modelo_final": 0.5393354665084299,
+  "fitness_validacion_de_los_finalistas": [
+    0.40573383979687366,
+    0.42313229852735634,
+    0.3751695820172385,
+    0.49121266533411967,
+    0.5393354665084299
+  ],
+  "semillas_validacion": [
+    1900,
+    1909
+  ],
+  "norma_cambio_de_pesos_vs_mejor_gen0": 7.524298311621098,
+  "fraccion_de_pesos_modificados": 1.0,
+  "n_parametros": 166,
+  "segundos_totales": 916.5,
+  "episodios_simulados": 9050,
+  "python": "3.12.0",
+  "numpy": "2.5.4",
+  "commit": "789f8b9"
+}
