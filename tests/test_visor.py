@@ -130,3 +130,14 @@ def test_visor_clic_selecciona_un_animal(cfg):
     visor.handle_click(int(visor.world.W) + 50, HUD + 10)   # clic en el panel: no cambia
     assert visor.selected == ("presa", 4)
     pygame.quit()
+
+
+def test_visor_registra_un_efecto_cuando_una_presa_es_capturada(cfg):
+    prey, pred = _opciones(cfg)
+    visor = Visor(cfg, prey, pred, seed=2, fps=1000)
+    w = visor.world
+    w.pred_pos[0] = w.prey_pos[0].copy()      # un depredador justo encima de una presa
+    visor.step_once()
+    assert any(e[3] == "captura" for e in visor.effects)
+    visor.draw()
+    pygame.quit()

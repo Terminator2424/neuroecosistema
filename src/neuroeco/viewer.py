@@ -15,21 +15,27 @@ from collections import deque
 
 import numpy as np
 import pygame
+import pygame.gfxdraw
 
 from .config import ROOT, load_scenario
 from .world import World
 
-HUD = 66
+HUD = 68
 PANEL = 340
-BG = (24, 28, 34)
-PANEL_BG = (32, 37, 45)
-PLANT = (80, 190, 100)
-PREY = (90, 160, 255)
-PRED = (240, 90, 90)
-TEXT = (230, 230, 230)
-MUTED = (150, 158, 170)
-ACCENT = (255, 200, 90)
+BG = (18, 24, 32)
+BG_TOP, BG_BOTTOM = (14, 22, 34), (22, 34, 40)
+PANEL_BG = (26, 31, 40)
+CARD = (35, 42, 54)
+CARD_EDGE = (52, 62, 78)
+PLANT = (92, 200, 110)
+PREY = (96, 178, 255)
+PREY_DIM = (40, 70, 110)
+PRED = (245, 96, 96)
+TEXT = (232, 236, 242)
+MUTED = (150, 160, 176)
+ACCENT = (255, 204, 96)
 NEUTRAL = (60, 60, 70)
+EFFECT_FRAMES = 22
 
 PREY_INPUTS = ["energía", "ángulo planta", "distancia planta",
                "ángulo depredador", "distancia depredador", "pared al frente"]
@@ -107,7 +113,10 @@ class Visor:
         pygame.display.set_caption(title)
         self.font = pygame.font.SysFont("consolas", 13)
         self.font_b = pygame.font.SysFont("consolas", 15, bold=True)
+        self.font_t = pygame.font.SysFont("consolas", 20, bold=True)
         self.clock = pygame.time.Clock()
+        self.frame = 0
+        self.bg = self._make_background(W, H)
         self.reset()
 
     # ----- estado
@@ -125,7 +134,20 @@ class Visor:
         self.last = None
         self.selected = None
         self.trail.clear()
+        self.effects = []
         self.hist = {"vivas": [], "capturas": []}
+
+    @staticmethod
+    def _make_background(W, H):
+        """Fondo con degradado vertical y una cuadrícula tenue."""
+        bg = pygame.Surface((W, H))
+        for y in range(H):
+            bg.fill(_lerp(BG_TOP, BG_BOTTOM, y / max(H - 1, 1)), (0, y, W, 1))
+        for x in range(0, W, 100):
+            pygame.draw.line(bg, (28, 40, 52), (x, 0), (x, H))
+        for y in range(0, H, 100):
+            pygame.draw.line(bg, (28, 40, 52), (0, y), (W, y))
+        return bg
 
     def step_once(self):
         w = self.world
@@ -134,8 +156,12 @@ class Visor:
         obs_p, obs_q = w.observe_prey(), w.observe_predator()
         po = self.prey_ctrl.act(obs_p, self.rng)
         qo = self.pred_ctrl.act(obs_q, self.rng)
+        vivas_antes = w.prey_alive.copy()
         w.step(po, qo)
         self.last = (po, qo)
+        for i in np.flatnonzero(vivas_antes & ~w.prey_alive):   # muertes de este paso
+            tipo = "captura" if w.prey_energy[i] > 0 else "hambre"
+            self.effects.append((float(w.prey_pos[i, 0]), float(w.prey_pos[i, 1]), self.frame, tipo))
         self.hist["vivas"].append(int(w.prey_alive.sum()))
         self.hist["capturas"].append(int(w.pred_captures.sum()))
         if self.selected is not None:
@@ -205,60 +231,122 @@ class Visor:
         return y + (18 if bold else 16)
 
     def _bar(self, x, y, w, value, lo, hi, color):
-        pygame.draw.rect(self.screen, (50, 56, 66), (x, y, w, 8))
+        pygame.draw.rect(self.screen, (50, 58, 72), (x, y, w, 8), border_radius=4)
         span = hi - lo
         zero = x + int(w * (0 - lo) / span) if lo < 0 else x
         pos = x + int(w * (np.clip(value, lo, hi) - lo) / span)
-        pygame.draw.rect(self.screen, color, (min(zero, pos), y, max(abs(pos - zero), 1), 8))
+        pygame.draw.rect(self.screen, color, (min(zero, pos), y, max(abs(pos - zero), 3), 8), border_radius=4)
         if lo < 0:
             pygame.draw.line(self.screen, MUTED, (zero, y - 1), (zero, y + 9))
 
+    def _triangle(self, cx, cy, head, size, color, outline=(255, 255, 255)):
+        """Triángulo apuntando hacia el rumbo del agente."""
+        pts = [(cx + np.cos(head) * size * 1.5, cy + np.sin(head) * size * 1.5),
+               (cx + np.cos(head + 2.5) * size, cy + np.sin(head + 2.5) * size),
+               (cx + np.cos(head - 2.5) * size, cy + np.sin(head - 2.5) * size)]
+        pts = [(int(x), int(y)) for x, y in pts]
+        pygame.gfxdraw.filled_polygon(self.screen, pts, color)
+        pygame.gfxdraw.aapolygon(self.screen, pts, outline)
+
     def _draw_arena(self):
         w, s = self.world, self.screen
-        pygame.draw.rect(s, BG, (0, HUD, int(w.W), int(w.H)))
+        s.blit(self.bg, (0, HUD))
         for i in np.flatnonzero(w.plant_active):
-            pygame.draw.circle(s, PLANT, (int(w.plant_pos[i, 0]), int(w.plant_pos[i, 1]) + HUD), 4)
+            x, y = int(w.plant_pos[i, 0]), int(w.plant_pos[i, 1]) + HUD
+            pygame.gfxdraw.filled_circle(s, x, y, 5, (40, 110, 60))
+            pygame.gfxdraw.filled_circle(s, x, y, 3, PLANT)
+            pygame.gfxdraw.aacircle(s, x, y, 5, (120, 220, 140))
         if self.show_trail and len(self.trail) > 1:
-            pts = [(int(p[0]), int(p[1]) + HUD) for p in self.trail]
-            pygame.draw.lines(s, ACCENT, False, pts, 2)
-        for pos, head, alive, color, r in ((w.prey_pos, w.prey_heading, w.prey_alive, PREY, 5),
-                                           (w.pred_pos, w.pred_heading, w.pred_alive, PRED, 8)):
+            n = len(self.trail)
+            for k in range(1, n):
+                a, b = self.trail[k - 1], self.trail[k]
+                color = _lerp((50, 60, 70), ACCENT, k / n)
+                pygame.draw.line(s, color, (int(a[0]), int(a[1]) + HUD), (int(b[0]), int(b[1]) + HUD), 2)
+        for pos, head, alive, energy, emax, kind in ((w.prey_pos, w.prey_heading, w.prey_alive, w.prey_energy, self.cfg["prey"]["max_energy"], "presa"),
+                                                      (w.pred_pos, w.pred_heading, w.pred_alive, w.pred_energy, self.cfg["predators"]["max_energy"], "depredador")):
             for i in range(len(pos)):
                 if not alive[i]:
                     continue
-                x, y = int(pos[i, 0]), int(pos[i, 1]) + HUD
-                pygame.draw.circle(s, color, (x, y), r)
-                pygame.draw.line(s, (255, 255, 255), (x, y),
-                                 (x + int(np.cos(head[i]) * r * 1.8), y + int(np.sin(head[i]) * r * 1.8)), 2)
+                x, y = float(pos[i, 0]), float(pos[i, 1]) + HUD
+                frac = float(np.clip(energy[i] / emax, 0.0, 1.0))
+                if kind == "presa":
+                    self._triangle(x, y, head[i], 6, _lerp(PREY_DIM, PREY, frac))
+                else:
+                    pygame.gfxdraw.aacircle(s, int(x), int(y), 15, (120, 50, 55))
+                    self._triangle(x, y, head[i], 9, _lerp((120, 40, 45), PRED, frac), (255, 220, 200))
+        # efectos: anillo rojo si fue capturada, amarillo apagado si murió de hambre
+        vivos = []
+        for (ex, ey, born, tipo) in self.effects:
+            edad = self.frame - born
+            if edad > EFFECT_FRAMES:
+                continue
+            vivos.append((ex, ey, born, tipo))
+            r = 6 + int(edad * 1.2)
+            color = _lerp((255, 90, 90) if tipo == "captura" else (200, 180, 90), BG_BOTTOM, edad / EFFECT_FRAMES)
+            pygame.gfxdraw.aacircle(s, int(ex), int(ey) + HUD, r, color)
+            pygame.gfxdraw.aacircle(s, int(ex), int(ey) + HUD, r + 1, color)
+        self.effects = vivos
         if self.selected is not None:
             sp, i = self.selected
             pos, alive, vis = ((w.prey_pos, w.prey_alive, self.cfg["prey"]["vision_range"]) if sp == "presa"
                                else (w.pred_pos, w.pred_alive, self.cfg["predators"]["vision_range"]))
             if alive[i]:
                 c = (int(pos[i, 0]), int(pos[i, 1]) + HUD)
-                pygame.draw.circle(s, ACCENT, c, 13, 2)
-                pygame.draw.circle(s, (90, 100, 115), c, int(vis), 1)
+                pygame.gfxdraw.aacircle(s, c[0], c[1], 16, ACCENT)
+                pygame.gfxdraw.aacircle(s, c[0], c[1], 17, ACCENT)
+                pygame.gfxdraw.aacircle(s, c[0], c[1], int(vis), (90, 110, 130))
+        self._draw_legend()
+
+    def _draw_legend(self):
+        s = self.screen
+        x, y = 10, HUD + int(self.world.H) - 30
+        pygame.draw.rect(s, (16, 22, 30), (x, y, 292, 22), border_radius=8)
+        pygame.draw.rect(s, CARD_EDGE, (x, y, 292, 22), 1, border_radius=8)
+        pygame.gfxdraw.filled_circle(s, x + 14, y + 11, 4, PLANT)
+        self._text("planta", x + 24, y + 4, MUTED)
+        self._triangle(x + 88, y + 11, 0.0, 5, PREY)
+        self._text("presa", x + 100, y + 4, MUTED)
+        self._triangle(x + 158, y + 11, 0.0, 6, PRED)
+        self._text("depredador", x + 170, y + 4, MUTED)
+
+    def _chip(self, texto, x, y, color=TEXT):
+        surf = self.font.render(texto, True, color)
+        r = pygame.Rect(x, y, surf.get_width() + 16, 22)
+        pygame.draw.rect(self.screen, CARD, r, border_radius=11)
+        pygame.draw.rect(self.screen, CARD_EDGE, r, 1, border_radius=11)
+        self.screen.blit(surf, (x + 8, y + 4))
+        return x + r.width + 6
 
     def _draw_hud(self):
         w = self.world
-        pygame.draw.rect(self.screen, (40, 46, 56), (0, 0, int(w.W) + PANEL, HUD))
-        l1 = (f"semilla {self.seed}  paso {w.t}/{w.max_steps}  presas {int(w.prey_alive.sum())}"
-              f"  depredadores {int(w.pred_alive.sum())}  plantas {int(w.plant_active.sum())}"
-              f"  capturas {int(w.pred_captures.sum())}  x{self.speed}")
-        if self.paused:
-            l1 += "  [PAUSA]"
+        pygame.draw.rect(self.screen, (20, 25, 34), (0, 0, int(w.W) + PANEL, HUD))
+        pygame.draw.line(self.screen, CARD_EDGE, (0, HUD - 1), (int(w.W) + PANEL, HUD - 1))
+        self.screen.blit(self.font_t.render("NeuroEcosistema", True, ACCENT), (10, 5))
+        x = 220
+        for texto, color in ((f"paso {w.t}/{w.max_steps}", TEXT), (f"presas {int(w.prey_alive.sum())}", PREY),
+                             (f"depredadores {int(w.pred_alive.sum())}", PRED), (f"plantas {int(w.plant_active.sum())}", PLANT),
+                             (f"capturas {int(w.pred_captures.sum())}", ACCENT), (f"x{self.speed}", MUTED),
+                             ("PAUSA" if self.paused else f"semilla {self.seed}", ACCENT if self.paused else MUTED)):
+            x = self._chip(texto, x, 6, color)
         l2 = "[clic] elegir animal  [ESPACIO] pausa  [→] un paso  [↑ ↓] velocidad  [N] otra semilla  [R] reiniciar"
         l3 = ("MODO DEFENSA: [1 2 3] escenario  [Z X] depredadores - +  [V B] comida - +  "
               "[P] presa  [D] depredador  [T] estela  [S] captura  [ESC] salir")
-        self._text(l1, 8, 5)
-        self._text(l2, 8, 23, MUTED)
-        self._text(l3, 8, 41, ACCENT)
+        self._text(l2, 10, 30, MUTED)
+        self._text(l3, 10, 47, ACCENT)
+
+    def _card(self, x, y, w, h):
+        pygame.draw.rect(self.screen, CARD, (x, y, w, h), border_radius=10)
+        pygame.draw.rect(self.screen, CARD_EDGE, (x, y, w, h), 1, border_radius=10)
 
     def _draw_panel(self):
         w = self.world
         x0, H = int(w.W), int(w.H)
         pygame.draw.rect(self.screen, PANEL_BG, (x0, HUD, PANEL, H))
-        x, y = x0 + 10, HUD + 8
+        cx, cw = x0 + 8, PANEL - 16
+        self._card(cx, HUD + 8, cw, 138)
+        self._card(cx, HUD + 154, cw, H - 154 - 114)
+        self._card(cx, HUD + H - 106, cw, 98)
+        x, y = x0 + 18, HUD + 14
         y = self._text("MODO DEFENSA", x, y, ACCENT, bold=True)
         y = self._text(f"escenario {self.scenario}   semilla {self.seed}", x, y)
         y = self._text(f"presa: {self.prey_options[self.pi][0]}", x, y)
@@ -266,10 +354,9 @@ class Visor:
         y = self._text(f"depredadores {self.cfg['predators']['initial']}   plantas iniciales {self.cfg['plants']['initial']}", x, y)
         y = self._text(f"aparición de plantas por paso {self.cfg['plants']['respawn_rate']:.3f}", x, y)
         if self.mensaje:
-            y = self._text(self.mensaje, x, y, MUTED)
-        y += 6
-        y = self._draw_agent(x, y)
-        self._draw_chart(x, HUD + H - 92)
+            self._text(self.mensaje, x, y, MUTED)
+        self._draw_agent(x, HUD + 162)
+        self._draw_chart(x, HUD + H - 100)
 
     def _draw_agent(self, x, y):
         w = self.world
@@ -310,7 +397,7 @@ class Visor:
                 a = a[0]
                 size = min(14, (PANEL - 30) // len(a) - 2)
                 for j, val in enumerate(a):
-                    pygame.draw.rect(self.screen, activation_color(val), (x + j * (size + 2), y, size, size))
+                    pygame.draw.rect(self.screen, activation_color(val), (x + j * (size + 2), y, size, size), border_radius=3)
                 y += size + 4
         else:
             out = last[i] if last is not None else np.zeros(2)
@@ -326,8 +413,11 @@ class Visor:
         self._bar(x + 222, y + 4, 90, vel, 0, 1, ACCENT)
         return y + 18
 
-    def _draw_chart(self, x, y, w=PANEL - 20, h=70):
-        pygame.draw.rect(self.screen, (22, 26, 32), (x, y, w, h))
+    def _draw_chart(self, x, y, w=PANEL - 36, h=64):
+        pygame.draw.rect(self.screen, (20, 25, 33), (x, y, w, h), border_radius=6)
+        for frac in (0.25, 0.5, 0.75):
+            yy = y + h - 2 - int((h - 4) * frac)
+            pygame.draw.line(self.screen, (40, 48, 60), (x + 4, yy), (x + w - 4, yy))
         n_prey = max(int(self.cfg["prey"]["initial"]), 1)
         for key, color in (("vivas", PREY), ("capturas", PRED)):
             data = self.hist[key]
@@ -338,10 +428,12 @@ class Visor:
                    for k, v in list(enumerate(data))[::step]]
             if len(pts) > 1:
                 pygame.draw.lines(self.screen, color, False, pts, 2)
-        self._text("presas vivas", x + 4, y + h + 2, PREY)
-        self._text("capturas acumuladas", x + 110, y + h + 2, PRED)
+        self._text(f"{n_prey}", x + 4, y + 2, MUTED)
+        self._text("presas vivas", x + 2, y + h + 4, PREY)
+        self._text("capturas acumuladas", x + 112, y + h + 4, PRED)
 
     def draw(self):
+        self.frame += 1
         self.screen.fill(BG)
         self._draw_arena()
         self._draw_panel()
