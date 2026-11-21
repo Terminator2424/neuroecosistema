@@ -4,10 +4,10 @@ Proyecto final integrador de la Electiva I de Profundización: Inteligencia Arti
 Universidad Santo Tomás, Seccional Tunja. Autor: Edison Javier Gonzalez Velosa. Docente: Diego Alejandro Vela Beltrán.
 
 ### NeuroEcosistema
-<img width="600" alt="NeuroEcosistema" src="https://github.com/user-attachments/assets/fd018653-79f7-4adc-8b5f-d03fcdac4a32" />
+<img width="600" alt="NeuroEcosistema" src="https://github.com/user-attachments/assets/bbe5de5c-df49-4885-b1de-c21bd20ceb5b" />
 
 ### NeuroEcosistema - Individuos
-<img width="600" alt="NeuroEcosistema - Individuos" src="https://github.com/user-attachments/assets/c5222360-f145-4ed8-952a-3f9a31c9dbe6" />
+<img width="600" alt="NeuroEcosistema - Individuos" src="https://github.com/user-attachments/assets/694b6ab4-0327-4b1c-b0c9-e5df4c8c80ad" />
 
 ## Qué es
 
