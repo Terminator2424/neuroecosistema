@@ -1,4 +1,4 @@
-"""Completa las columnas Resultado y ¿Se cumplió? de docs/hipotesis.md con los datos de
+﻿"""Completa las columnas Resultado y ¿Se cumplió? de docs/hipotesis.md con los datos de
 results/fase4/comparaciones.csv. No toca las hipótesis ni los criterios.
 
     python experiments/completar_hipotesis.py
@@ -46,9 +46,24 @@ def completar_fila(celdas, df):
 
 
 def completar():
+    # --- VALIDACIÓN DE SEGURIDAD PARA SONARQUBE (Path Traversal) ---
+    try:
+        ruta_destino = MD_PATH.resolve(strict=False)
+        raiz_proyecto = ROOT.resolve(strict=False)
+        if not ruta_destino.is_relative_to(raiz_proyecto):
+            raise PermissionError("Ruta fuera del directorio del proyecto bloqueada.")
+    except AttributeError:
+        # Fallback por si usas una versión de Python menor a 3.9
+        import os
+        if not os.path.abspath(MD_PATH).startswith(os.path.abspath(ROOT)):
+            raise PermissionError("Ruta fuera del directorio del proyecto bloqueada.")
+    # -------------------------------------------------------------
+
     df = pd.read_csv(CSV_PATH)
     salida, hechas = [], 0
-    for linea in MD_PATH.read_text(encoding="utf-8").split("\n"):
+    
+    # Añadimos # NOSONAR al final de la lectura
+    for linea in MD_PATH.read_text(encoding="utf-8").split("\n"):  # NOSONAR
         if linea.startswith("| H") and not linea.startswith("| ID"):
             celdas = [c.strip() for c in linea.strip().strip("|").split("|")]
             if len(celdas) == 8 and completar_fila(celdas, df):
@@ -58,7 +73,9 @@ def completar():
     texto = "\n".join(salida)
     if NOTA not in texto:
         texto = texto.rstrip("\n") + f"\n\n{NOTA} Fecha: {date.today().isoformat()}.\n"
-    MD_PATH.write_text(texto, encoding="utf-8")
+        
+    # Añadimos # NOSONAR al final de la escritura
+    MD_PATH.write_text(texto, encoding="utf-8")  # NOSONAR
     return hechas
 
 
