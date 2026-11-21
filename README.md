@@ -3,6 +3,12 @@
 Proyecto final integrador de la Electiva I de Profundización: Inteligencia Artificial.
 Universidad Santo Tomás, Seccional Tunja. Autor: Edison Javier Gonzalez Velosa. Docente: Diego Alejandro Vela Beltrán.
 
+### NeuroEcosistema
+![NeuroEcosistema](<img width="600" height="338" alt="neuro_individuos" src="https://github.com/user-attachments/assets/fd018653-79f7-4a4c-8b5f-d03fcdac4a32" />)
+
+### NeuroEcosistema - Individuos
+![NeuroEcosistema - Individuos](<img width="600" height="338" alt="neuro_ecosistema" src="https://github.com/user-attachments/assets/c522236b-f145-4ed8-952a-3f0a31c9dbe6" />)
+
 ## Qué es
 
 Una simulación en 2D con plantas, presas y depredadores. Cada animal decide cómo moverse con una red neuronal (la presa percibe 6 cosas y el depredador 5; ambas devuelven un giro y una velocidad). Las redes no vienen programadas: se entrenan por neuroevolución (se prueban 30 redes, las mejores pasan y se mutan, durante 100 generaciones). Después se comparan contra agentes sin aprendizaje (aleatorio, por reglas, perseguidor e interceptor) en tres escenarios, con 30 semillas de evaluación y pruebas estadísticas pareadas.
