@@ -95,18 +95,17 @@ def distancia_media_al_depredador(pos_presa, vivo_presa, pos_dep, vivo_dep):
 
 def verificar():
     """Comprueba las 3 funciones con casos pequeños donde la respuesta se sabe."""
-    ok = True
+    fallos = []
 
     def caso(nombre, fn):
-        nonlocal ok
         try:
             fn()
             print(f"  [BIEN] {nombre}")
         except NotImplementedError:
-            ok = False
+            fallos.append(nombre)
             print(f"  [PENDIENTE] {nombre}")
         except AssertionError as e:
-            ok = False
+            fallos.append(nombre)
             print(f"  [MAL] {nombre}: {e}")
 
     def t1():
@@ -133,8 +132,11 @@ def verificar():
     caso("velocidad_media", t1)
     caso("fraccion_cerca_de_paredes", t2)
     caso("distancia_media_al_depredador", t3)
-    print("\nTodo bien: ya puedes correr el análisis completo." if ok else "\nTodavía hay funciones por arreglar.")
-    return ok
+    if fallos:
+        print("\nTodavía hay funciones por arreglar.")
+    else:
+        print("\nTodo bien: ya puedes correr el análisis completo.")
+    return not fallos
 
 
 def main():
@@ -179,7 +181,8 @@ def main():
     salida.mkdir(parents=True, exist_ok=True)
     df.to_csv(salida / "comportamiento_presa.csv", index=False)
     resumen = df.groupby("condicion").agg(["mean", "std"]).drop(columns="semilla").round(2)
-    pd.set_option("display.width", 220, "display.max_columns", None)
+    pd.set_option("display.width", 220)
+    pd.set_option("display.max_columns", None)
     print(f"\nComportamiento de las presas (escenario {args.escenario}, oponente {args.oponente}, semillas {args.inicio} a {args.inicio + args.n - 1}):\n")
     print(resumen.to_string())
     print(f"\nDatos por episodio en {salida / 'comportamiento_presa.csv'}")
