@@ -1,13 +1,11 @@
+
 # NeuroEcosistema: presas y depredadores con redes neuronales
 
 Proyecto final integrador de la Electiva I de Profundización: Inteligencia Artificial.
 Universidad Santo Tomás, Seccional Tunja. Autor: Edison Javier Gonzalez Velosa. Docente: Diego Alejandro Vela Beltrán.
 
 ### NeuroEcosistema
-<img width="600" alt="NeuroEcosistema" src="https://github.com/user-attachments/assets/bbe5de5c-df49-4885-b1de-c21bd20ceb5b" />
-
-### NeuroEcosistema - Individuos
-<img width="600" alt="NeuroEcosistema - Individuos" src="https://github.com/user-attachments/assets/694b6ab4-0327-4b1c-b0c9-e5df4c8c80ad" />
+<img width="480" height="293" alt="neuroecosistemagit" src="https://github.com/user-attachments/assets/e6fa93aa-450b-41fd-b952-982dc4d4158b" />
 
 ## Qué es
 
